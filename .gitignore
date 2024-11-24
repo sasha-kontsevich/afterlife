@@ -1,0 +1,10 @@
+﻿.git/
+.idea/
+/afterlife_unity/Library/
+/afterlife_unity/Temp/
+/afterlife_unity/Obj/
+/afterlife_unity/Logs/
+*.csproj
+*.unityproj
+*.sln
+*.userprefs
