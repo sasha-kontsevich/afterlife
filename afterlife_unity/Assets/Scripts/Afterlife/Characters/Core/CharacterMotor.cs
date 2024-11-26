@@ -1,73 +1,83 @@
+using Afterlife.Characters.States;
 using UnityEngine;
 
 namespace Afterlife.Characters.Core
 {
-    /// <summary>
-    /// Класс для управления движением персонажа.
-    /// Включает перемещение по оси X и прыжки, а также проверку на землю.
-    /// </summary>
     [RequireComponent(typeof(Rigidbody2D))]
     [RequireComponent(typeof(Collider2D))]
     public class CharacterMotor : MonoBehaviour
     {
-        /// <summary>
-        /// Скорость перемещения персонажа по оси X.
-        /// </summary>
         [Header("Movement Settings")]
         public float moveSpeed = 5f;
-
-        /// <summary>
-        /// Сила прыжка.
-        /// </summary>
         public float jumpForce = 10f;
-
-        /// <summary>
-        /// Маска слоя, который считается землей для проверки.
-        /// </summary>
         public LayerMask groundLayer;
+        
+        public float moveSpeedLerpRate = 3f;
 
         private Rigidbody2D _rb;
         private Collider2D _coll;
-        private bool _isGrounded;
+        private ICharacterState _currentState;
 
-        /// <summary>
-        /// Инициализация компонента.
-        /// Получаем необходимые компоненты (Rigidbody2D и Collider2D).
-        /// </summary>
+        private PhysicsMaterial2D _physicsMaterial2D0;
+        private PhysicsMaterial2D _physicsMaterial2D1;
+        private PhysicsMaterial2D _physicsMaterial2D10;
+
+        public bool IsGrounded { get; private set; }
+        
         private void Awake()
         {
             _rb = GetComponent<Rigidbody2D>();
             _coll = GetComponent<Collider2D>();
+            
+            // Инициализация материалов
+            _physicsMaterial2D0 = new PhysicsMaterial2D { friction = 0f };
+            _physicsMaterial2D1 = new PhysicsMaterial2D { friction = 1f };
+            _physicsMaterial2D10 = new PhysicsMaterial2D { friction = 10f };
+            
+            ChangeState(new GroundedState()); // Начальное состояние
         }
 
-        /// <summary>
-        /// Проверка на землю. Вызывается каждый фиксированный кадр.
-        /// </summary>
         private void FixedUpdate()
         {
-            // Проверка, стоит ли персонаж на земле
-            _isGrounded = Physics2D.OverlapCircle(transform.position, 0.1f, groundLayer);
+            CheckGround();
+            _currentState.UpdateState(this);
         }
 
-        /// <summary>
-        /// Двигает персонажа по оси X.
-        /// </summary>
-        /// <param name="horizontal">Направление движения по оси X (например, -1 или 1).</param>
         public void Move(float horizontal)
         {
-            // Перемещение персонажа
-            _rb.linearVelocity = new Vector2(horizontal * moveSpeed, _rb.linearVelocity.y);
+            var targetVelocityX = horizontal * moveSpeed;
+            var smoothedVelocityX = Mathf.Lerp(_rb.linearVelocity.x, targetVelocityX, Time.fixedDeltaTime * moveSpeedLerpRate);
+            _rb.linearVelocity = new Vector2(smoothedVelocityX, _rb.linearVelocity.y);
         }
 
-        /// <summary>
-        /// Прыжок персонажа. Происходит только если персонаж на земле.
-        /// </summary>
         public void Jump()
         {
-            if (_isGrounded)
+            if (IsGrounded)
             {
                 _rb.linearVelocity = new Vector2(_rb.linearVelocity.x, jumpForce);
             }
+        }
+
+        public void ChangeState(ICharacterState newState)
+        {
+            _currentState?.ExitState(this);
+            _currentState = newState;
+            _currentState.EnterState(this);
+        }
+
+        public void SetFriction(float value)
+        {
+            _coll.sharedMaterial = value switch
+            {
+                < 0.5f => _physicsMaterial2D0,
+                < 5f => _physicsMaterial2D1,
+                _ => _physicsMaterial2D10
+            };
+        }
+
+        private void CheckGround()
+        {
+            IsGrounded = Physics2D.OverlapCircle(transform.position, 0.2f, groundLayer);
         }
     }
 }
