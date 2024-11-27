@@ -14,18 +14,30 @@ namespace Afterlife.Characters.States
 
         public void UpdateState(CharacterMotor motor)
         {
-            // Получаем ввод игрока для движения
-            _horizontalInput = Input.GetAxis("Horizontal");
-            
-            if (Mathf.Abs(_horizontalInput) <= 0.01f)
+            if (Mathf.Abs(motor.MoveDirection.x) <= 0.01f)
             {
                 motor.ChangeState(new GroundedState());
             }
-
-            if (!motor.IsGrounded)
+            else if (!motor.IsGrounded)
             {
-                motor.ChangeState(new AirborneState());
+                motor.ChangeState(new AirborneState()); 
             }
+            else if (motor.IsJumping)
+            {
+                motor.ChangeState(new JumpingState());
+                return;
+            }
+            
+            // Направление движения вдоль поверхности
+            var movementDirection = Vector2.Perpendicular(-motor.GroundNormal).normalized * motor.MoveDirection.x;
+
+            // Целевая горизонтальная скорость
+            var targetVelocity = movementDirection * motor.moveSpeed;
+
+            // Смягчение только горизонтальной компоненты скорости
+            // motor.Velocity = targetVelocity;
+            motor.Velocity = Vector2.Lerp(motor.Velocity, targetVelocity, Time.fixedDeltaTime * motor.moveSpeedLerpRate);
+
         }
 
         public void ExitState(CharacterMotor motor)

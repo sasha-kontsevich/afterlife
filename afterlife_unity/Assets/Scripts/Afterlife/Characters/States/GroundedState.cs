@@ -16,9 +16,13 @@ namespace Afterlife.Characters.States
             {
                 motor.ChangeState(new AirborneState());
             }
-            else if (Mathf.Abs(Input.GetAxis("Horizontal")) > 0.01f)
+            else if (Mathf.Abs(motor.MoveDirection.x) >= 0.01f)
             {
                 motor.ChangeState(new MovingState());
+            }
+            else if (motor.IsJumping)
+            {
+                motor.ChangeState(new JumpingState());
             }
         }
 

@@ -3,26 +3,21 @@ using UnityEngine;
 
 namespace Afterlife.Characters.States
 {
-    public class AirborneState : ICharacterState
+    public class JumpingState : ICharacterState
     {
         public void EnterState(CharacterMotor motor)
         {
-            motor.SetFriction(0f);
+            motor.SetFriction(0);
+            motor.Velocity += Vector2.up * motor.jumpForce;
         }
 
         public void UpdateState(CharacterMotor motor)
         {
-            if (motor.IsGrounded && Mathf.Abs(motor.MoveDirection.x) >= 0.01f)
+            if (!motor.IsGrounded)
             {
-                motor.ChangeState(new MovingState());
-                return;
+                motor.ChangeState(new AirborneState());
             }
-            else if (motor.IsGrounded)
-            {
-                motor.ChangeState(new GroundedState());
-                return;
-            }
-
+            
             // Целевая горизонтальная скорость
             var targetVelocity = motor.MoveDirection * motor.moveSpeed;
             
@@ -33,7 +28,7 @@ namespace Afterlife.Characters.States
 
         public void ExitState(CharacterMotor motor)
         {
-            // Опционально: действия при выходе из состояния
+            // motor.IsJumping = false;
         }
     }
 }

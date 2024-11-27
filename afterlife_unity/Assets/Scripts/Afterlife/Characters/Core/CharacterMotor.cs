@@ -14,6 +14,10 @@ namespace Afterlife.Characters.Core
         
         public float moveSpeedLerpRate = 3f;
 
+        [Header("Info")]
+        [SerializeField] private string currentStateName;
+        
+        
         private Rigidbody2D _rb;
         private Collider2D _coll;
         private ICharacterState _currentState;
@@ -22,8 +26,18 @@ namespace Afterlife.Characters.Core
         private PhysicsMaterial2D _physicsMaterial2D1;
         private PhysicsMaterial2D _physicsMaterial2D10;
 
+        public Vector2 GroundNormal { get; private set; } = Vector2.up;
+        public Vector2 MoveDirection { get; private set; } = Vector2.zero;
         public bool IsGrounded { get; private set; }
-        
+        public bool IsJumping { get; private set; }
+        private string CurrentStateName => _currentState?.GetType().Name ?? "No State";
+
+        public Vector2 Velocity
+        {
+            get => _rb.linearVelocity;
+            set => _rb.linearVelocity = value;
+        }
+
         private void Awake()
         {
             _rb = GetComponent<Rigidbody2D>();
@@ -31,7 +45,7 @@ namespace Afterlife.Characters.Core
             
             // Инициализация материалов
             _physicsMaterial2D0 = new PhysicsMaterial2D { friction = 0f };
-            _physicsMaterial2D1 = new PhysicsMaterial2D { friction = 1f };
+            _physicsMaterial2D1 = new PhysicsMaterial2D { friction = 0.2f };
             _physicsMaterial2D10 = new PhysicsMaterial2D { friction = 10f };
             
             ChangeState(new GroundedState()); // Начальное состояние
@@ -41,20 +55,23 @@ namespace Afterlife.Characters.Core
         {
             CheckGround();
             _currentState.UpdateState(this);
+            // Дебаг линии для отображения движения
+            currentStateName = CurrentStateName;
+            // Debug.Log(currentStateName + ", " + _rb.linearVelocity);
+            Debug.DrawLine(transform.position, transform.position + new Vector3(_rb.linearVelocity.x, _rb.linearVelocity.y, 0) * 0.3f, Color.green);
+            Debug.DrawLine(Vector3.zero, new Vector3(_rb.linearVelocity.x, 0, 0) * 1f, Color.red);
         }
 
         public void Move(float horizontal)
         {
-            var targetVelocityX = horizontal * moveSpeed;
-            var smoothedVelocityX = Mathf.Lerp(_rb.linearVelocity.x, targetVelocityX, Time.fixedDeltaTime * moveSpeedLerpRate);
-            _rb.linearVelocity = new Vector2(smoothedVelocityX, _rb.linearVelocity.y);
+            MoveDirection = new Vector2(horizontal, 0);
         }
 
         public void Jump()
         {
             if (IsGrounded)
             {
-                _rb.linearVelocity = new Vector2(_rb.linearVelocity.x, jumpForce);
+                IsJumping = true;
             }
         }
 
@@ -77,7 +94,20 @@ namespace Afterlife.Characters.Core
 
         private void CheckGround()
         {
-            IsGrounded = Physics2D.OverlapCircle(transform.position, 0.2f, groundLayer);
+            // Обновляем нормаль поверхности, если персонаж на земле
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, 0.25f);
+            if (hit.collider)
+            {
+                IsGrounded = true;
+                GroundNormal = hit.normal;
+            }
+            else
+            {
+                IsGrounded = false;
+                GroundNormal = Vector2.up; // Сброс нормали на вертикаль
+                IsJumping = false;
+            }
+
         }
     }
 }
