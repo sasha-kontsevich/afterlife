@@ -15,7 +15,9 @@ namespace Afterlife.Characters.FSM
         {
             base.FixedUpdate();
             
-            if (Motor.IsJumping && IsGrounded)
+            Move();
+            
+            if (Motor.IsJumping)
             {
                 Motor.Jump();
             }
@@ -23,21 +25,32 @@ namespace Afterlife.Characters.FSM
             {
                 Machine.SetState<GroundState>();
             }
-
-            Move();
         }
 
         private void Move()
         {
-            // Направление движения вдоль поверхности
-            // var movementDirection = Vector2.Perpendicular(-Motor.GroundNormal).normalized * Motor.MoveDirection.x;
-            var movementDirection = Motor.MoveDirection;
-            // Целевая горизонтальная скорость
-            var targetVelocity = movementDirection * Motor.moveSpeed;
+            // Рассчитываем целевую скорость по горизонтали
+            var targetVelocityX = Motor.MoveDirection.x * Motor.moveSpeed;
 
-            // Смягчение только горизонтальной компоненты скорости
-            // motor.Velocity = targetVelocity;
-            Motor.Velocity = Vector2.Lerp(Motor.Velocity, targetVelocity, Time.fixedDeltaTime * Motor.moveSpeedLerpRate);
+            // Если персонаж на наклонной поверхности (определяется нормалью)
+            if (Vector2.Angle(Vector2.up, Motor.GroundNormal) > 10f && Vector2.Angle(Vector2.up, Motor.GroundNormal) <= 45f)
+            {
+                // Направление движения с учётом наклона поверхности
+                var slopeDirection = Vector2.Perpendicular(Motor.GroundNormal).normalized;
+                if (slopeDirection.y > 0) slopeDirection = -slopeDirection; // Гарантия движения вдоль наклона вниз
+
+                var adjustedVelocity = slopeDirection * targetVelocityX;
+                var smoothedVelocity = Vector2.Lerp(Motor.Velocity, adjustedVelocity, Time.fixedDeltaTime * Motor.moveSpeedLerpRate);
+
+                // Устанавливаем новую скорость
+                Motor.Velocity = new Vector2(smoothedVelocity.x, Motor.Velocity.y);
+            }
+            else
+            {
+                // Для горизонтальных поверхностей или больших углов применяем обычное движение
+                var smoothedVelocityX = Mathf.Lerp(Motor.Velocity.x, targetVelocityX, Time.fixedDeltaTime * Motor.moveSpeedLerpRate);
+                Motor.Velocity = new Vector2(smoothedVelocityX, Motor.Velocity.y);
+            }
         }
     }
 }

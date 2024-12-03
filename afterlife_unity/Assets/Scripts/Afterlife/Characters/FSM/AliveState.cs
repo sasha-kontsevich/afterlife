@@ -8,7 +8,6 @@ namespace Afterlife.Characters.FSM
     {
         protected readonly CharacterMotor Motor;
         protected PhysicsMaterial2D PhysicsMaterial;
-        protected bool IsGrounded { get; private set; }
 
         protected AliveState(StateMachine machine, CharacterMotor motor) : base(machine)
         {
@@ -26,26 +25,10 @@ namespace Afterlife.Characters.FSM
         public override void FixedUpdate()
         {
             base.FixedUpdate();
-
-            CheckGround();
             
-            if (!IsGrounded)
+            if (!Motor.IsGrounded && !Motor.CanJump)
             {
                 Machine.SetState<AirborneState>();
-            }
-        }
-        
-        private void CheckGround()
-        {
-            var hit = Physics2D.Raycast(Motor.transform.position, Vector2.down, 0.25f);
-            Debug.DrawLine(Motor.transform.position, Motor.transform.position + Vector3.down * 0.25f, Color.cyan);
-            if (hit.collider)
-            {
-                IsGrounded = true;
-            }
-            else
-            {
-                IsGrounded = false;
             }
         }
     }

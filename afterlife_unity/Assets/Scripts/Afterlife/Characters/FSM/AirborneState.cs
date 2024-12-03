@@ -15,11 +15,11 @@ namespace Afterlife.Characters.FSM
         {
             base.FixedUpdate();
 
-            if (IsGrounded && Mathf.Abs(Motor.MoveDirection.x) < 0.01f)
+            if (Motor.IsGrounded && Mathf.Abs(Motor.MoveDirection.x) < 0.01f)
             {
                 Machine.SetState<GroundState>();
             }
-            if (IsGrounded && Mathf.Abs(Motor.MoveDirection.x) > 0.01f)
+            if (Motor.IsGrounded && Mathf.Abs(Motor.MoveDirection.x) > 0.01f)
             {
                 Machine.SetState<MoveState>();
             }

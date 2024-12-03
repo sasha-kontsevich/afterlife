@@ -14,6 +14,7 @@ namespace Afterlife.Characters.Core
         public float jumpForce = 10f;
         public LayerMask groundLayer;
         public float moveSpeedLerpRate = 3f;
+        public float coyoteTime = 0.2f; // Время эффекта койота
 
         //Информация
         [Header("Info")]
@@ -27,8 +28,9 @@ namespace Afterlife.Characters.Core
         
         //Управление
         public Vector2 MoveDirection => _input.MovementInput;
-        public bool IsJumping => _input.JumpInput;
-        
+        public bool IsJumping => CanJump && _input.HasBufferedJump;
+        public bool IsGrounded { get; private set; }
+        public bool CanJump => IsGrounded || _coyoteTimeCounter > 0f;
         public Vector2 Velocity
         {
             get => _rb.linearVelocity;
@@ -38,6 +40,7 @@ namespace Afterlife.Characters.Core
         public Vector2 GroundNormal { get; private set; } = Vector2.up;
         
         private string CurrentStateName => _stateMachine.CurrentState?.GetType().Name ?? "No State";
+        private float _coyoteTimeCounter;
 
         private void Awake()
         {
@@ -66,12 +69,16 @@ namespace Afterlife.Characters.Core
         {
             _stateMachine.FixedUpdate();
             
+            CheckGround();
+            
             DebugThis();
         }
 
         public void Jump()
         {
             Velocity += Vector2.up * jumpForce;
+            // Debug.Log(Velocity);
+            _input.ConsumeBufferedJump();
         }
         
         public void SetPhysicsMaterial(PhysicsMaterial2D material)
@@ -87,5 +94,20 @@ namespace Afterlife.Characters.Core
             Debug.DrawLine(transform.position, transform.position + new Vector3(_rb.linearVelocity.x, _rb.linearVelocity.y, 0) * 0.3f, Color.green);
             Debug.DrawLine(Vector3.zero, new Vector3(_rb.linearVelocity.x, 0, 0) * 1f, Color.red);
         }
+        
+        private void CheckGround()
+        {
+            IsGrounded = Physics2D.OverlapCircle(transform.position, 0.2f, groundLayer);
+            
+            if (IsGrounded)
+            {
+                _coyoteTimeCounter = coyoteTime;
+            }
+            else
+            {
+                _coyoteTimeCounter -= Time.fixedDeltaTime;
+            }
+        }
+        
     }
 }

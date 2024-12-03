@@ -15,7 +15,7 @@ namespace Afterlife.Characters.FSM
         {
             base.FixedUpdate();
             
-            if (Motor.IsJumping && IsGrounded)
+            if (Motor.IsJumping)
             {
                 Motor.Jump();
             }
