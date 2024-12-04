@@ -100,6 +100,8 @@ GameObject:
   - component: {fileID: 8330274988323482681}
   - component: {fileID: 7544649035389383960}
   - component: {fileID: 5279541055451752973}
+  - component: {fileID: 6894487301770694791}
+  - component: {fileID: 2510975244320161137}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -135,12 +137,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac9c7fdf88f439748a40aca2301fde3c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 7
-  jumpForce: 15
+  moveSpeed: 10
+  jumpForce: 14
   groundLayer:
     serializedVersion: 2
     m_Bits: 64
-  moveSpeedLerpRate: 3
+  moveSpeedLerpRate: 20
+  coyoteTime: 0.15
+  currentStateName: 
 --- !u!114 &8330274988323482681
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -153,6 +157,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d700b4b2c58ee4d4e9b99e619171fcf3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  jumpBufferTime: 0.2
 --- !u!50 &7544649035389383960
 Rigidbody2D:
   serializedVersion: 5
@@ -176,9 +181,9 @@ Rigidbody2D:
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 4
 --- !u!61 &5279541055451752973
 BoxCollider2D:
@@ -226,3 +231,37 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.6087929, y: 1.472611}
   m_EdgeRadius: 0
+--- !u!95 &6894487301770694791
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6581901008163680601}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 8392fb27aa97d9b4fbe451aaa5d11d99, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &2510975244320161137
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6581901008163680601}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 365db5e4163d4a20b93d73efb40b9fb2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

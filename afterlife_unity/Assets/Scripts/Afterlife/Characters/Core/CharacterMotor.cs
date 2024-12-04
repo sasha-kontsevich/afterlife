@@ -24,11 +24,11 @@ namespace Afterlife.Characters.Core
         private Rigidbody2D _rb;
         private Collider2D _coll;
         private CharacterInput _input;
-        private StateMachine _stateMachine;
-        
+
         //Управление
         public Vector2 MoveDirection => _input.MovementInput;
         public bool IsJumping => CanJump && _input.HasBufferedJump;
+        public StateMachine StateMachine { get; private set; }
         public bool IsGrounded { get; private set; }
         public bool CanJump => IsGrounded || _coyoteTimeCounter > 0f;
         public Vector2 Velocity
@@ -39,7 +39,7 @@ namespace Afterlife.Characters.Core
 
         public Vector2 GroundNormal { get; private set; } = Vector2.up;
         
-        private string CurrentStateName => _stateMachine.CurrentState?.GetType().Name ?? "No State";
+        private string CurrentStateName => StateMachine.CurrentState?.GetType().Name ?? "No State";
         private float _coyoteTimeCounter;
 
         private void Awake()
@@ -48,26 +48,26 @@ namespace Afterlife.Characters.Core
             _coll = GetComponent<Collider2D>();
             _input = GetComponent<CharacterInput>();
             
-            _stateMachine = new StateMachine();
+            StateMachine = new StateMachine();
             
-            _stateMachine.AddState(new AirborneState(_stateMachine, this));
-            _stateMachine.AddState(new GroundState(_stateMachine, this));
-            _stateMachine.AddState(new MoveState(_stateMachine, this));
+            StateMachine.AddState(new AirborneState(StateMachine, this));
+            StateMachine.AddState(new GroundState(StateMachine, this));
+            StateMachine.AddState(new MoveState(StateMachine, this));
         }
 
         private void Start()
         {
-            _stateMachine.SetState<GroundState>();
+            StateMachine.SetState<GroundState>();
         }
 
         private void Update()
         {
-            _stateMachine.Update();
+            StateMachine.Update();
         }
 
         private void FixedUpdate()
         {
-            _stateMachine.FixedUpdate();
+            StateMachine.FixedUpdate();
             
             CheckGround();
             
@@ -76,7 +76,7 @@ namespace Afterlife.Characters.Core
 
         public void Jump()
         {
-            Velocity += Vector2.up * jumpForce;
+            Velocity = new Vector2(Velocity.x, jumpForce);
             // Debug.Log(Velocity);
             _input.ConsumeBufferedJump();
         }

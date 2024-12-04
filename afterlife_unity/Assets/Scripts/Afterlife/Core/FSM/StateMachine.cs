@@ -8,6 +8,8 @@ namespace Afterlife.Core.FSM
         public State CurrentState { get; private set; }
         
         private readonly Dictionary<Type, State> _states = new();
+        
+        public event Action<string> OnStateChanged;
 
         public void AddState(State state)
         {
@@ -25,6 +27,8 @@ namespace Afterlife.Core.FSM
             CurrentState?.Exit();
             CurrentState = state;
             CurrentState?.Enter();
+            
+            OnStateChanged?.Invoke(type.Name); 
         }
 
         public virtual void Update()
