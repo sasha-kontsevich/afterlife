@@ -27,6 +27,7 @@ namespace Afterlife.Characters.Core
 
         //Управление
         public Vector2 MoveDirection => _input.MovementInput;
+        public float DirectionX { get; private set; }
         public bool IsJumping => CanJump && _input.HasBufferedJump;
         public StateMachine StateMachine { get; private set; }
         public bool IsGrounded { get; private set; }
@@ -70,8 +71,23 @@ namespace Afterlife.Characters.Core
             StateMachine.FixedUpdate();
             
             CheckGround();
+
+            UpdateDirection();
             
             DebugThis();
+        }
+
+        private void UpdateDirection()
+        {
+            if (MoveDirection.x > 0)
+            {
+                DirectionX = 1;
+            }
+
+            if (MoveDirection.x < 0)
+            {
+                DirectionX = -1;
+            }
         }
 
         public void Jump()
